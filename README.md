@@ -14,8 +14,9 @@ You can drive spindle:
 It also reads from the VFD:
  - freq setpoint  (`vfd.spdvfd.commfrequency`)
  - current freq (`vfd.spdvfd.outfrequency`) + virtual current rpm (`vfd.spdvfd.outrpm`)
- - current current (`vfd.spdvfd.outcurrent`)
- - current voltage (`vfd.spdvfd.outcoltage`)
+ - current current (A) (`vfd.spdvfd.outcurrent`)
+ - current voltage (V) (`vfd.spdvfd.outvoltage`)
+ - current power (VA) (`vfd.spdvfd.power`)
  - if spindle is at speed (`vfd.spdvfd.atfreq`)
 
 TODO:

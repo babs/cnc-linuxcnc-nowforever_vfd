@@ -53,75 +53,26 @@ vfd['spdvfd.rpmset'] = 500
 
 def main():
     while 1:
-        #with open("/tmp/vfd_hal",'a') as f:
-        #    f.write(str(datetime.datetime.now()))
-        #    for item in ["spdvfd.run", "spdvfd.forward", "spdvfd.rpmset", "spdvfd.atfreq"]:
-        #        f.write("\t"+item+": "+ str(vfd[item]))
-        #    f.write("\n")
-        #    f.flush()
-        
-        #time.sleep(0.01)
-        #-----------------SPINDLE VFD--------------------
-        readparamA = []
-        #responseA=serialvfd1._performCommand(3, "none")
-        ### Test
-        #responseA=serialvfd1._performCommand(3, struct.pack('>BBBB', 0x01,0x02,0x03,0x04))
-        
-        ### stop 
-        #responseA=serialvfd1._performCommand(0x10, struct.pack('>HHBHH', 0x900,0x02,0x04,0,40000))
-
-        ### start 400
-        #responseA=serialvfd1._performCommand(0x10, struct.pack('>HHBHH', 0x900,0x02,0x04,1,40000))
-
-        ### start
-        #responseA=serialvfd1._performCommand(0x10, struct.pack('>HHBH', 0x900,0x01,0x02,0))
-
-        ### Set freq to 4Hz
-        #responseA=serialvfd1._performCommand(0x10, struct.pack('>HHBH', 0x901,0x01,0x02,400))
-
-        ### Read
-        responseA = ""
         resp = ""
         try:
             resp = serialvfd1._performCommand(0x03, struct.pack('>HH', 0x500,0x06))
-            
-            vfd['spdvfd.commfrequency'] = ord(resp[3])*256 + ord(resp[4]) 
+
+            vfd['spdvfd.commfrequency'] = ord(resp[3])*256 + ord(resp[4])
             vfd['spdvfd.outfrequency'] = ord(resp[5])*256 + ord(resp[6])
             vfd['spdvfd.outcurrent'] = (ord(resp[7])*256 + ord(resp[8])) / 10.0
             vfd['spdvfd.outvoltage'] = (ord(resp[9])*256 + ord(resp[10])) / 10.0
-            
+            vfd['spdvfd.power'] = vfd['spdvfd.outcurrent'] * vfd['spdvfd.outvoltage']
             vfd['spdvfd.outrpm'] = vfd['spdvfd.outfrequency'] * 240.0/400
             vfd['spdvfd.atfreq'] = vfd['spdvfd.commfrequency'] == vfd['spdvfd.outfrequency']
 
-           
-            print " ".join("%.2x"%ord(n) for n in resp)
-            #with open("/tmp/vfd_hal.read",'a') as f:
-            #    f.write(str(datetime.datetime.now())+" ")
-            #    f.write(" ".join("%.2x"%ord(n) for n in message))
-            #    f.write("\n")
-            #    f.flush()
         except KeyboardInterrupt:
             raise SystemExit
         except:
             pass
 
-        for i in xrange(0,len(responseA)/8):
-            readparamA.append(responseA[i*8+2:8*i+8+2])
-        #print readparamA
-        #vfd['spdvfd.outfrequency'] = float(readparamA[0])/10000
-        #vfd['spdvfd.outcurrent'] = float(readparamA[1])/1000
-        #vfd['spdvfd.drivestatus'] = int(readparamA[2])
-        #vfd['spdvfd.outtorque'] = int(readparamA[7])/100
-        #vfd['spdvfd.outvoltage'] = float(readparamA[8])/1000
-        #vfd['spdvfd.power'] = float(readparamA[9])/1000
-        #vfd['spdvfd.runtime'] = int(readparamA[11])
-        #vfd['spdvfd.powerontime'] = int(readparamA[12])
-        #vfd['spdvfd.commfrequency'] = float(serialvfd1._performCommand(6, "F001"))/100
-
-
         fct = None
         payload = ""
-        
+
         #start/stop/cw/ccw
         if vfd['spdvfd.run'] and vfd['spdvfd.forward']: #run CW
             fct = 0x10
@@ -162,7 +113,7 @@ def _vfd_do(fct,payload):
                 f.write(str(datetime.datetime.now()))
                 f.write(" Error while writing: fct: %.2x\t payload:%s\n%s\n"%(fct,payload,traceback.format_exc()))
                 f.flush()
-        
+
 if __name__ == "__main__":
     try:
         main()
