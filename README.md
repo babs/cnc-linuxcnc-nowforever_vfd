@@ -20,4 +20,5 @@ It also reads from the VFD:
  - if spindle is at speed (`vfd.spdvfd.atfreq`)
 
 TODO:
- - optimize to not send order every time (only when they differs like start stop, direction, freq)
+ - use argparse to make the script parametric
+ - <del>optimize to not send order every time (only when they differs like start stop, direction, freq)</del>
