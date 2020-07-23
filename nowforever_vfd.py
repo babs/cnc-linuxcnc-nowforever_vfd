@@ -33,7 +33,7 @@ stopbits = 1
 timeout = 0.2
 port = '/dev/ttyUSB0'
 
-#spindle vfd has slave id 1
+#spindle vfd has subordinate id 1
 serialvfd1 = comms.Instrument(port, 1)
 #serialvfd1.debug = True
 serialvfd1.serial.baudrate = baudrate
