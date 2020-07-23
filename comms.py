@@ -114,16 +114,16 @@ MODE_CUSTOM = 'custom'
 
 
 class Instrument():
-    """Instrument class for talking to instruments (slaves) via the Modbus RTU protocol (via RS485 or RS232).
+    """Instrument class for talking to instruments (subordinates) via the Modbus RTU protocol (via RS485 or RS232).
 
     Args:
         * port (str): The serial port name, for example ``/dev/ttyUSB0`` (Linux), ``/dev/tty.usbserial`` (OS X) or ``COM4`` (Windows).
-        * slaveaddress (int): Slave address in the range 1 to 247 (use decimal numbers, not hex).
+        * subordinateaddress (int): Subordinate address in the range 1 to 247 (use decimal numbers, not hex).
         * mode (str): Mode selection. Can be MODE_RTU or MODE_ASCII!
 
     """
 
-    def __init__(self, port, slaveaddress, mode=MODE_RTU):
+    def __init__(self, port, subordinateaddress, mode=MODE_RTU):
         if port not in _SERIALPORTS or not _SERIALPORTS[port]:
             self.serial = _SERIALPORTS[port] = serial.Serial(port=port, baudrate=BAUDRATE, parity=PARITY, bytesize=BYTESIZE, stopbits=STOPBITS, timeout=TIMEOUT)
         else:
@@ -147,11 +147,11 @@ class Instrument():
                 - Defaults to :data:`TIMEOUT`.
         """
 
-        self.address = slaveaddress
-        """Slave address (int). Most often set by the constructor (see the class documentation). """
+        self.address = subordinateaddress
+        """Subordinate address (int). Most often set by the constructor (see the class documentation). """
 
         self.mode = mode
-        """Slave mode (str), can be MODE_RTU or MODE_ASCII.  Most often set by the constructor (see the class documentation).
+        """Subordinate mode (str), can be MODE_RTU or MODE_ASCII.  Most often set by the constructor (see the class documentation).
 
         New in version 0.6.
         """
@@ -187,15 +187,15 @@ class Instrument():
             )
 
     ######################################
-    ## Methods for talking to the slave ##
+    ## Methods for talking to the subordinate ##
     ######################################
 
 
     def read_bit(self, registeraddress, functioncode=2):
-        """Read one bit from the slave.
+        """Read one bit from the subordinate.
 
         Args:
-            * registeraddress (int): The slave register address (use decimal numbers, not hex).
+            * registeraddress (int): The subordinate register address (use decimal numbers, not hex).
             * functioncode (int): Modbus function code. Can be 1 or 2.
 
         Returns:
@@ -210,10 +210,10 @@ class Instrument():
 
 
     def write_bit(self, registeraddress, value, functioncode=5):
-        """Write one bit to the slave.
+        """Write one bit to the subordinate.
 
         Args:
-            * registeraddress (int): The slave register address (use decimal numbers, not hex).
+            * registeraddress (int): The subordinate register address (use decimal numbers, not hex).
             * value (int): 0 or 1
             * functioncode (int): Modbus function code. Can be 5 or 15.
 
@@ -230,17 +230,17 @@ class Instrument():
 
 
     def read_register(self, registeraddress, numberOfDecimals=0, functioncode=3, signed=False):
-        """Read an integer from one 16-bit register in the slave, possibly scaling it.
+        """Read an integer from one 16-bit register in the subordinate, possibly scaling it.
 
-        The slave register can hold integer values in the range 0 to 65535 ("Unsigned INT16").
+        The subordinate register can hold integer values in the range 0 to 65535 ("Unsigned INT16").
 
         Args:
-            * registeraddress (int): The slave register address (use decimal numbers, not hex).
+            * registeraddress (int): The subordinate register address (use decimal numbers, not hex).
             * numberOfDecimals (int): The number of decimals for content conversion.
             * functioncode (int): Modbus function code. Can be 3 or 4.
             * signed (bool): Whether the data should be interpreted as unsigned or signed.
 
-        If a value of 77.0 is stored internally in the slave register as 770, then use ``numberOfDecimals=1``
+        If a value of 77.0 is stored internally in the subordinate register as 770, then use ``numberOfDecimals=1``
         which will divide the received data by 10 before returning the value.
 
         Similarly ``numberOfDecimals=2`` will divide the received data by 100 before returning the value.
@@ -255,7 +255,7 @@ class Instrument():
         negative return values (two's complement).
 
         ============== ================== ================ ===============
-        ``signed``     Data type in slave Alternative name Range
+        ``signed``     Data type in subordinate Alternative name Range
         ============== ================== ================ ===============
         :const:`False` Unsigned INT16     Unsigned short   0 to 65535
         :const:`True`  INT16              Short            -32768 to 32767
@@ -275,21 +275,21 @@ class Instrument():
 
 
     def write_register(self, registeraddress, value, numberOfDecimals=0, functioncode=16, signed=False):
-        """Write an integer to one 16-bit register in the slave, possibly scaling it.
+        """Write an integer to one 16-bit register in the subordinate, possibly scaling it.
 
-        The slave register can hold integer values in the range 0 to 65535 ("Unsigned INT16").
+        The subordinate register can hold integer values in the range 0 to 65535 ("Unsigned INT16").
 
         Args:
-            * registeraddress (int): The slave register address  (use decimal numbers, not hex).
-            * value (int or float): The value to store in the slave register (might be scaled before sending).
+            * registeraddress (int): The subordinate register address  (use decimal numbers, not hex).
+            * value (int or float): The value to store in the subordinate register (might be scaled before sending).
             * numberOfDecimals (int): The number of decimals for content conversion.
             * functioncode (int): Modbus function code. Can be 6 or 16.
             * signed (bool): Whether the data should be interpreted as unsigned or signed.
 
-        To store for example ``value=77.0``, use ``numberOfDecimals=1`` if the slave register will hold it as 770 internally.
-        This will multiply ``value`` by 10 before sending it to the slave register.
+        To store for example ``value=77.0``, use ``numberOfDecimals=1`` if the subordinate register will hold it as 770 internally.
+        This will multiply ``value`` by 10 before sending it to the subordinate register.
 
-        Similarly ``numberOfDecimals=2`` will multiply ``value`` by 100 before sending it to the slave register.
+        Similarly ``numberOfDecimals=2`` will multiply ``value`` by 100 before sending it to the subordinate register.
 
         For discussion on negative values, the range and on alternative names, see :meth:`.read_register`.
 
@@ -313,17 +313,17 @@ class Instrument():
 
 
     def read_long(self, registeraddress, functioncode=3, signed=False):
-        """Read a long integer (32 bits) from the slave.
+        """Read a long integer (32 bits) from the subordinate.
 
-        Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the slave.
+        Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the subordinate.
 
         Args:
-            * registeraddress (int): The slave register start address (use decimal numbers, not hex).
+            * registeraddress (int): The subordinate register start address (use decimal numbers, not hex).
             * functioncode (int): Modbus function code. Can be 3 or 4.
             * signed (bool): Whether the data should be interpreted as unsigned or signed.
 
         ============== ================== ================ ==========================
-        ``signed``     Data type in slave Alternative name Range
+        ``signed``     Data type in subordinate Alternative name Range
         ============== ================== ================ ==========================
         :const:`False` Unsigned INT32     Unsigned long    0 to 4294967295
         :const:`True`  INT32              Long             -2147483648 to 2147483647
@@ -342,9 +342,9 @@ class Instrument():
 
 
     def write_long(self, registeraddress, value, signed=False):
-        """Write a long integer (32 bits) to the slave.
+        """Write a long integer (32 bits) to the subordinate.
 
-        Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the slave.
+        Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the subordinate.
 
         Uses Modbus function code 16.
 
@@ -352,8 +352,8 @@ class Instrument():
         and on alternative names, see :meth:`.read_long`.
 
         Args:
-            * registeraddress (int): The slave register start address  (use decimal numbers, not hex).
-            * value (int or long): The value to store in the slave.
+            * registeraddress (int): The subordinate register start address  (use decimal numbers, not hex).
+            * value (int or long): The value to store in the subordinate.
             * signed (bool): Whether the data should be interpreted as unsigned or signed.
 
         Returns:
@@ -372,9 +372,9 @@ class Instrument():
 
 
     def read_float(self, registeraddress, functioncode=3, numberOfRegisters=2):
-        """Read a floating point number from the slave.
+        """Read a floating point number from the subordinate.
 
-        Floats are stored in two or more consecutive 16-bit registers in the slave. The
+        Floats are stored in two or more consecutive 16-bit registers in the subordinate. The
         encoding is according to the standard IEEE 754.
 
         There are differences in the byte order used by different manufacturers. A floating
@@ -385,12 +385,12 @@ class Instrument():
         required by anyone (see support section).
 
         Args:
-            * registeraddress (int): The slave register start address (use decimal numbers, not hex).
+            * registeraddress (int): The subordinate register start address (use decimal numbers, not hex).
             * functioncode (int): Modbus function code. Can be 3 or 4.
             * numberOfRegisters (int): The number of registers allocated for the float. Can be 2 or 4.
 
         ====================================== ================= =========== =================
-        Type of floating point number in slave Size              Registers   Range
+        Type of floating point number in subordinate Size              Registers   Range
         ====================================== ================= =========== =================
         Single precision (binary32)            32 bits (4 bytes) 2 registers 1.4E-45 to 3.4E38
         Double precision (binary64)            64 bits (8 bytes) 4 registers 5E-324 to 1.8E308
@@ -409,17 +409,17 @@ class Instrument():
 
 
     def write_float(self, registeraddress, value, numberOfRegisters=2):
-        """Write a floating point number to the slave.
+        """Write a floating point number to the subordinate.
 
-        Floats are stored in two or more consecutive 16-bit registers in the slave.
+        Floats are stored in two or more consecutive 16-bit registers in the subordinate.
 
         Uses Modbus function code 16.
 
         For discussion on precision, number of registers and on byte order, see :meth:`.read_float`.
 
         Args:
-            * registeraddress (int): The slave register start address (use decimal numbers, not hex).
-            * value (float or int): The value to store in the slave
+            * registeraddress (int): The subordinate register start address (use decimal numbers, not hex).
+            * value (float or int): The value to store in the subordinate
             * numberOfRegisters (int): The number of registers allocated for the float. Can be 2 or 4.
 
         Returns:
@@ -436,13 +436,13 @@ class Instrument():
 
 
     def read_string(self, registeraddress, numberOfRegisters=16, functioncode=3):
-        """Read a string from the slave.
+        """Read a string from the subordinate.
 
-        Each 16-bit register in the slave are interpreted as two characters (1 byte = 8 bits).
+        Each 16-bit register in the subordinate are interpreted as two characters (1 byte = 8 bits).
         For example 16 consecutive registers can hold 32 characters (32 bytes).
 
         Args:
-            * registeraddress (int): The slave register start address (use decimal numbers, not hex).
+            * registeraddress (int): The subordinate register start address (use decimal numbers, not hex).
             * numberOfRegisters (int): The number of registers allocated for the string.
             * functioncode (int): Modbus function code. Can be 3 or 4.
 
@@ -460,16 +460,16 @@ class Instrument():
 
 
     def write_string(self, registeraddress, textstring, numberOfRegisters=16):
-        """Write a string to the slave.
+        """Write a string to the subordinate.
 
-        Each 16-bit register in the slave are interpreted as two characters (1 byte = 8 bits).
+        Each 16-bit register in the subordinate are interpreted as two characters (1 byte = 8 bits).
         For example 16 consecutive registers can hold 32 characters (32 bytes).
 
         Uses Modbus function code 16.
 
         Args:
-            * registeraddress (int): The slave register start address  (use decimal numbers, not hex).
-            * textstring (str): The string to store in the slave
+            * registeraddress (int): The subordinate register start address  (use decimal numbers, not hex).
+            * textstring (str): The string to store in the subordinate
             * numberOfRegisters (int): The number of registers allocated for the string.
 
         If the textstring is longer than the 2*numberOfRegisters, an error is raised.
@@ -489,12 +489,12 @@ class Instrument():
 
 
     def read_registers(self, registeraddress, numberOfRegisters, functioncode=3):
-        """Read integers from 16-bit registers in the slave.
+        """Read integers from 16-bit registers in the subordinate.
 
-        The slave registers can hold integer values in the range 0 to 65535 ("Unsigned INT16").
+        The subordinate registers can hold integer values in the range 0 to 65535 ("Unsigned INT16").
 
         Args:
-            * registeraddress (int): The slave register start address (use decimal numbers, not hex).
+            * registeraddress (int): The subordinate register start address (use decimal numbers, not hex).
             * numberOfRegisters (int): The number of registers to read.
             * functioncode (int): Modbus function code. Can be 3 or 4.
 
@@ -515,17 +515,17 @@ class Instrument():
 
 
     def write_registers(self, registeraddress, values):
-        """Write integers to 16-bit registers in the slave.
+        """Write integers to 16-bit registers in the subordinate.
 
-        The slave register can hold integer values in the range 0 to 65535 ("Unsigned INT16").
+        The subordinate register can hold integer values in the range 0 to 65535 ("Unsigned INT16").
 
         Uses Modbus function code 16.
 
         The number of registers that will be written is defined by the length of the ``values`` list.
 
         Args:
-            * registeraddress (int): The slave register start address (use decimal numbers, not hex).
-            * values (list of int): The values to store in the slave registers.
+            * registeraddress (int): The subordinate register start address (use decimal numbers, not hex).
+            * values (list of int): The values to store in the subordinate registers.
 
         Any scaling of the register data, or converting it to negative number (two's complement)
         must be done manually.
@@ -562,11 +562,11 @@ class Instrument():
             * signed (bool): Whether the data should be interpreted as unsigned or signed. Only for a single register or for payloadformat='long'.
             * payloadformat (None or string): None, 'long', 'float', 'string', 'register', 'registers'. Not necessary for single registers or bits.
 
-        If a value of 77.0 is stored internally in the slave register as 770,
+        If a value of 77.0 is stored internally in the subordinate register as 770,
         then use ``numberOfDecimals=1`` which will divide the received data by 10
         before returning the value. Similarly ``numberOfDecimals=2`` will divide
         the received data by 100 before returning the value. Same functionality also
-        when writing data to the slave.
+        when writing data to the subordinate.
 
         Returns:
             The register data in numerical value (int or float), or the bit value 0 or 1 (int), or ``None``.
@@ -664,25 +664,25 @@ class Instrument():
                 raise ValueError('The list length does not match number of registers. ' + \
                     'List: {0!r},  Number of registers: {1!r}.'.format(value, numberOfRegisters))
 
-        ## Build payload to slave ##
+        ## Build payload to subordinate ##
         if functioncode in [1, 2]:
-            payloadToSlave = _numToTwoByteString(registeraddress) + \
+            payloadToSubordinate = _numToTwoByteString(registeraddress) + \
                             _numToTwoByteString(NUMBER_OF_BITS)
 
         elif functioncode in [3, 4]:
-            payloadToSlave = _numToTwoByteString(registeraddress) + \
+            payloadToSubordinate = _numToTwoByteString(registeraddress) + \
                             _numToTwoByteString(numberOfRegisters)
 
         elif functioncode == 5:
-            payloadToSlave = _numToTwoByteString(registeraddress) + \
+            payloadToSubordinate = _numToTwoByteString(registeraddress) + \
                             _createBitpattern(functioncode, value)
 
         elif functioncode == 6:
-            payloadToSlave = _numToTwoByteString(registeraddress) + \
+            payloadToSubordinate = _numToTwoByteString(registeraddress) + \
                             _numToTwoByteString(value, numberOfDecimals, signed=signed)
 
         elif functioncode == 15:
-            payloadToSlave = _numToTwoByteString(registeraddress) + \
+            payloadToSubordinate = _numToTwoByteString(registeraddress) + \
                             _numToTwoByteString(NUMBER_OF_BITS) + \
                             _numToOneByteString(NUMBER_OF_BYTES_FOR_ONE_BIT) + \
                             _createBitpattern(functioncode, value)
@@ -704,37 +704,37 @@ class Instrument():
                 registerdata = _valuelistToBytestring(value, numberOfRegisters)
 
             assert len(registerdata) == numberOfRegisterBytes
-            payloadToSlave = _numToTwoByteString(registeraddress) + \
+            payloadToSubordinate = _numToTwoByteString(registeraddress) + \
                             _numToTwoByteString(numberOfRegisters) + \
                             _numToOneByteString(numberOfRegisterBytes) + \
                             registerdata
 
         ## Communicate ##
-        payloadFromSlave = self._performCommand(functioncode, payloadToSlave)
+        payloadFromSubordinate = self._performCommand(functioncode, payloadToSubordinate)
 
         ## Check the contents in the response payload ##
         if functioncode in [1, 2, 3, 4]:
-            _checkResponseByteCount(payloadFromSlave)  # response byte count
+            _checkResponseByteCount(payloadFromSubordinate)  # response byte count
 
         if functioncode in [5, 6, 15, 16]:
-            _checkResponseRegisterAddress(payloadFromSlave, registeraddress)  # response register address
+            _checkResponseRegisterAddress(payloadFromSubordinate, registeraddress)  # response register address
 
         if functioncode == 5:
-            _checkResponseWriteData(payloadFromSlave, _createBitpattern(functioncode, value))  # response write data
+            _checkResponseWriteData(payloadFromSubordinate, _createBitpattern(functioncode, value))  # response write data
 
         if functioncode == 6:
-            _checkResponseWriteData(payloadFromSlave, \
+            _checkResponseWriteData(payloadFromSubordinate, \
             _numToTwoByteString(value, numberOfDecimals, signed=signed))  # response write data
 
         if functioncode == 15:
-            _checkResponseNumberOfRegisters(payloadFromSlave, NUMBER_OF_BITS)  # response number of bits
+            _checkResponseNumberOfRegisters(payloadFromSubordinate, NUMBER_OF_BITS)  # response number of bits
 
         if functioncode == 16:
-            _checkResponseNumberOfRegisters(payloadFromSlave, numberOfRegisters)  # response number of registers
+            _checkResponseNumberOfRegisters(payloadFromSubordinate, numberOfRegisters)  # response number of registers
 
         ## Calculate return value ##
         if functioncode in [1, 2]:
-            registerdata = payloadFromSlave[NUMBER_OF_BYTES_BEFORE_REGISTERDATA:]
+            registerdata = payloadFromSubordinate[NUMBER_OF_BYTES_BEFORE_REGISTERDATA:]
             if len(registerdata) != NUMBER_OF_BYTES_FOR_ONE_BIT:
                 raise ValueError('The registerdata length does not match NUMBER_OF_BYTES_FOR_ONE_BIT. ' + \
                     'Given {0}.'.format(len(registerdata)))
@@ -742,7 +742,7 @@ class Instrument():
             return _bitResponseToValue(registerdata)
 
         if functioncode in [3, 4]:
-            registerdata = payloadFromSlave[NUMBER_OF_BYTES_BEFORE_REGISTERDATA:]
+            registerdata = payloadFromSubordinate[NUMBER_OF_BYTES_BEFORE_REGISTERDATA:]
             if len(registerdata) != numberOfRegisterBytes:
                 raise ValueError('The registerdata length does not match number of register bytes. ' + \
                     'Given {0!r} and {1!r}.'.format(len(registerdata), numberOfRegisterBytes))
@@ -770,15 +770,15 @@ class Instrument():
     ##########################################
 
 
-    def _performCommand(self, functioncode, payloadToSlave):
+    def _performCommand(self, functioncode, payloadToSubordinate):
         """Performs the command having the *functioncode*.
 
         Args:
             * functioncode (int): The function code for the command to be performed. Can for example be 'Write register' = 16.
-            * payloadToSlave (str): Data to be transmitted to the slave (will be embedded in slaveaddress, CRC etc)
+            * payloadToSubordinate (str): Data to be transmitted to the subordinate (will be embedded in subordinateaddress, CRC etc)
 
         Returns:
-            The extracted data payload from the slave (a string). It has been stripped of CRC etc.
+            The extracted data payload from the subordinate (a string). It has been stripped of CRC etc.
 
         Raises:
             ValueError, TypeError.
@@ -791,14 +791,14 @@ class Instrument():
         DEFAULT_NUMBER_OF_BYTES_TO_READ = 1000
 
         _checkFunctioncode(functioncode, None)
-        _checkString(payloadToSlave, description='payload')
+        _checkString(payloadToSubordinate, description='payload')
 
-        #print "payloadToSlave:"
-        #print " ".join("%.2x"%ord(n) for n in payloadToSlave)
+        #print "payloadToSubordinate:"
+        #print " ".join("%.2x"%ord(n) for n in payloadToSubordinate)
 
 
         # Build message
-        message = _embedPayload(self.address, self.mode, functioncode, payloadToSlave)
+        message = _embedPayload(self.address, self.mode, functioncode, payloadToSubordinate)
         if self.debug:
             print "message:"
             print "=>", " ".join("%.2x"%ord(n) for n in message)
@@ -808,7 +808,7 @@ class Instrument():
         #print " ".join("%.2x"%ord(n) for n in message)
         if self.precalculate_read_size:
             try:
-                number_of_bytes_to_read = _predictResponseSize(self.mode, functioncode, payloadToSlave)
+                number_of_bytes_to_read = _predictResponseSize(self.mode, functioncode, payloadToSubordinate)
             except:
                 if self.debug:
                     template = 'MinimalModbus debug mode. Could not precalculate response size for Modbus {} mode. ' + \
@@ -824,19 +824,19 @@ class Instrument():
             print "<=", " ".join("%.2x"%ord(n) for n in response)
 
         # Extract payload
-        payloadFromSlave = _extractPayload(response, self.address, self.mode, functioncode)
-        return payloadFromSlave
+        payloadFromSubordinate = _extractPayload(response, self.address, self.mode, functioncode)
+        return payloadFromSubordinate
 
 
     def _communicate(self, message, number_of_bytes_to_read):
-        """Talk to the slave via a serial port.
+        """Talk to the subordinate via a serial port.
 
         Args:
-            message (str): The raw message that is to be sent to the slave.
+            message (str): The raw message that is to be sent to the subordinate.
             number_of_bytes_to_read (int): number of bytes to read
 
         Returns:
-            The raw data (string) returned from the slave.
+            The raw data (string) returned from the subordinate.
 
         Raises:
             TypeError, ValueError, IOError
@@ -854,9 +854,9 @@ class Instrument():
 
         Timing::
 
-                                                  Request from master (Master is writing)
+                                                  Request from main (Main is writing)
                                                   |
-                                                  |       Response from slave (Master is reading)
+                                                  |       Response from subordinate (Main is reading)
                                                   |       |
             ----W----R----------------------------W-------R----------------------------------------
                      |                            |       |
@@ -948,35 +948,35 @@ class Instrument():
 ####################
 
 
-def _embedPayload(slaveaddress, mode, functioncode, payloaddata):
-    """Build a message from the slaveaddress, the function code and the payload data.
+def _embedPayload(subordinateaddress, mode, functioncode, payloaddata):
+    """Build a message from the subordinateaddress, the function code and the payload data.
 
     Args:
-        * slaveaddress (int): The address of the slave.
+        * subordinateaddress (int): The address of the subordinate.
         * mode (str): The modbus protcol mode (rtu or ascii)
         * functioncode (int): The function code for the command to be performed. Can for example be 16 (Write register).
-        * payloaddata (str): The byte string to be sent to the slave.
+        * payloaddata (str): The byte string to be sent to the subordinate.
 
     Returns:
-        The built (raw) message string for sending to the slave (including CRC etc).
+        The built (raw) message string for sending to the subordinate (including CRC etc).
 
     Raises:
         ValueError, TypeError.
 
     The resulting message has the format:
-     * RTU Mode: slaveaddress byte + functioncode byte + payloaddata + CRC (which is two bytes).
-     * ASCII Mode: header (:) + slaveaddress (2 characters) + functioncode (2 characters) + payloaddata + LRC (which is two characters) + footer (CRLF)
+     * RTU Mode: subordinateaddress byte + functioncode byte + payloaddata + CRC (which is two bytes).
+     * ASCII Mode: header (:) + subordinateaddress (2 characters) + functioncode (2 characters) + payloaddata + LRC (which is two characters) + footer (CRLF)
 
-    The LRC or CRC is calculated from the byte string made up of slaveaddress + functioncode + payloaddata.
+    The LRC or CRC is calculated from the byte string made up of subordinateaddress + functioncode + payloaddata.
     The header, LRC/CRC, and footer are excluded from the calculation.
 
     """
-    _checkSlaveaddress(slaveaddress)
+    _checkSubordinateaddress(subordinateaddress)
     _checkMode(mode)
     _checkFunctioncode(functioncode, None)
     _checkString(payloaddata, description='payload')
 
-    firstPart = _numToOneByteString(slaveaddress) + _numToOneByteString(functioncode) + payloaddata
+    firstPart = _numToOneByteString(subordinateaddress) + _numToOneByteString(functioncode) + payloaddata
 
     if mode == MODE_ASCII:
         message = _ASCII_HEADER + \
@@ -985,7 +985,7 @@ def _embedPayload(slaveaddress, mode, functioncode, payloaddata):
                 _ASCII_FOOTER
     elif mode == MODE_CUSTOM:
         message = _CUSTOM_HEADER + \
-                _hexencode(_numToOneByteString(slaveaddress) + _numToOneByteString(functioncode)) + \
+                _hexencode(_numToOneByteString(subordinateaddress) + _numToOneByteString(functioncode)) + \
                 payloaddata + \
                 _hexencode(_calculateBccString(firstPart)) + \
                 _CUSTOM_FOOTER
@@ -995,12 +995,12 @@ def _embedPayload(slaveaddress, mode, functioncode, payloaddata):
     return message
 
 
-def _extractPayload(response, slaveaddress, mode, functioncode):
-    """Extract the payload data part from the slave's response.
+def _extractPayload(response, subordinateaddress, mode, functioncode):
+    """Extract the payload data part from the subordinate's response.
 
     Args:
-        * response (str): The raw response byte string from the slave.
-        * slaveaddress (int): The adress of the slave. Used here for error checking only.
+        * response (str): The raw response byte string from the subordinate.
+        * subordinateaddress (int): The adress of the subordinate. Used here for error checking only.
         * mode (str): The modbus protcol mode (rtu or ascii)
         * functioncode (int): Used here for error checking only.
 
@@ -1011,10 +1011,10 @@ def _extractPayload(response, slaveaddress, mode, functioncode):
         ValueError, TypeError. Raises an exception if there is any problem with the received address, the functioncode or the CRC.
 
     The received response should have the format:
-        RTU Mode: slaveaddress byte + functioncode byte + payloaddata + CRC (which is two bytes)
-        ASCII Mode: header (:) + slaveaddress byte + functioncode byte + payloaddata + LRC (which is two characters) + footer (CRLF)
+        RTU Mode: subordinateaddress byte + functioncode byte + payloaddata + CRC (which is two bytes)
+        ASCII Mode: header (:) + subordinateaddress byte + functioncode byte + payloaddata + LRC (which is two characters) + footer (CRLF)
 
-    For development purposes, this function can also be used to extract the payload from the message sent TO the slave.
+    For development purposes, this function can also be used to extract the payload from the message sent TO the subordinate.
 
     """
     BYTEPOSITION_FOR_ASCII_HEADER          = 0  # Relative to plain response
@@ -1034,7 +1034,7 @@ def _extractPayload(response, slaveaddress, mode, functioncode):
 
     # Argument validity testing
     _checkString(response, description='response')
-    _checkSlaveaddress(slaveaddress)
+    _checkSubordinateaddress(subordinateaddress)
     _checkMode(mode)
     _checkFunctioncode(functioncode, None)
 
@@ -1175,21 +1175,21 @@ def _extractPayload(response, slaveaddress, mode, functioncode):
        receivedFunctioncode = ord(response[BYTEPOSITION_FOR_FUNCTIONCODE])
 
        if receivedFunctioncode == _setBitOn(functioncode, BITNUMBER_FUNCTIONCODE_ERRORINDICATION):
-           raise ValueError('The slave is indicating an error. The response is: {!r}'.format(response))
+           raise ValueError('The subordinate is indicating an error. The response is: {!r}'.format(response))
 
        elif receivedFunctioncode != functioncode:
            raise ValueError('Wrong functioncode: {} instead of {}. The response is: {!r}'.format( \
                receivedFunctioncode, functioncode, response))
 
-    # Check slave address
+    # Check subordinate address
     if mode == MODE_CUSTOM:
 	responseaddress = ord(_hexdecode(response[0:2]))
     else:
         responseaddress = ord(response[BYTEPOSITION_FOR_SLAVEADDRESS])
     
-    if responseaddress != slaveaddress:
-        raise ValueError('Wrong return slave address: {} instead of {}. The response is: {!r}'.format( \
-              responseaddress, slaveaddress, response))
+    if responseaddress != subordinateaddress:
+        raise ValueError('Wrong return subordinate address: {} instead of {}. The response is: {!r}'.format( \
+              responseaddress, subordinateaddress, response))
 
 
     # Read data payload
@@ -1215,13 +1215,13 @@ def _extractPayload(response, slaveaddress, mode, functioncode):
 ############################################
 
 
-def _predictResponseSize(mode, functioncode, payloadToSlave):
-    """Calculate the number of bytes that should be received from the slave.
+def _predictResponseSize(mode, functioncode, payloadToSubordinate):
+    """Calculate the number of bytes that should be received from the subordinate.
 
     Args:
      * mode (str) :
      * functioncode (int):
-     * payloadToSlave (str): The raw message that is to be sent to the slave (not hex encoded string)
+     * payloadToSubordinate (str): The raw message that is to be sent to the subordinate (not hex encoded string)
 
     Returns:
         The preducted number of bytes (int) in the response.
@@ -1248,7 +1248,7 @@ def _predictResponseSize(mode, functioncode, payloadToSlave):
     # Argument validity testing
     _checkMode(mode)
     _checkFunctioncode(functioncode, None)
-    _checkString(payloadToSlave, description='payload', minlength=MIN_PAYLOAD_LENGTH)
+    _checkString(payloadToSubordinate, description='payload', minlength=MIN_PAYLOAD_LENGTH)
 
     # Calculate payload size
     if mode != MODE_CUSTOM:
@@ -1256,7 +1256,7 @@ def _predictResponseSize(mode, functioncode, payloadToSlave):
             response_payload_size = NUMBER_OF_PAYLOAD_BYTES_IN_WRITE_CONFIRMATION
 
         elif functioncode in [1, 2, 3, 4]:
-            given_size = _twoByteStringToNum(payloadToSlave[BYTERANGE_FOR_GIVEN_SIZE])
+            given_size = _twoByteStringToNum(payloadToSubordinate[BYTERANGE_FOR_GIVEN_SIZE])
             if functioncode == 1 or functioncode == 2:
                 # Algorithm from MODBUS APPLICATION PROTOCOL SPECIFICATION V1.1b
                 number_of_inputs = given_size
@@ -1270,7 +1270,7 @@ def _predictResponseSize(mode, functioncode, payloadToSlave):
 
         else:
             raise ValueError('Wrong functioncode: {}. The payload is: {!r}'.format( \
-                functioncode, payloadToSlave))
+                functioncode, payloadToSubordinate))
     else:
         if functioncode in [6]:
             response_payload_size = 9
@@ -1352,8 +1352,8 @@ def _numToTwoByteString(value, numberOfDecimals=0, LsbFirst=False, signed=False)
         TypeError, ValueError. Gives DeprecationWarning instead of ValueError
         for some values in Python 2.6.
 
-    Use ``numberOfDecimals=1`` to multiply ``value`` by 10 before sending it to the slave register.
-    Similarly ``numberOfDecimals=2`` will multiply ``value`` by 100 before sending it to the slave register.
+    Use ``numberOfDecimals=1`` to multiply ``value`` by 10 before sending it to the subordinate register.
+    Similarly ``numberOfDecimals=2`` will multiply ``value`` by 100 before sending it to the subordinate register.
 
     Use the parameter ``signed=True`` if making a bytestring that can hold
     negative values. Then negative input will be automatically converted into
@@ -1446,7 +1446,7 @@ def _twoByteStringToNum(bytestring, numberOfDecimals=0, signed=False):
 def _longToBytestring(value, signed=False, numberOfRegisters=2):
     """Convert a long integer to a bytestring.
 
-    Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the slave.
+    Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the subordinate.
 
     Args:
         * value (int): The numerical value to be converted.
@@ -1478,7 +1478,7 @@ def _longToBytestring(value, signed=False, numberOfRegisters=2):
 def _bytestringToLong(bytestring, signed=False, numberOfRegisters=2):
     """Convert a bytestring to a long integer.
 
-    Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the slave.
+    Long integers (32 bits = 4 bytes) are stored in two consecutive 16-bit registers in the subordinate.
 
     Args:
         * bytestring (str): A string of length 4.
@@ -1508,11 +1508,11 @@ def _bytestringToLong(bytestring, signed=False, numberOfRegisters=2):
 def _floatToBytestring(value, numberOfRegisters=2):
     """Convert a numerical value to a bytestring.
 
-    Floats are stored in two or more consecutive 16-bit registers in the slave. The
+    Floats are stored in two or more consecutive 16-bit registers in the subordinate. The
         encoding is according to the standard IEEE 754.
 
     ====================================== ================= =========== =================
-    Type of floating point number in slave Size              Registers   Range
+    Type of floating point number in subordinate Size              Registers   Range
     ====================================== ================= =========== =================
     Single precision (binary32)            32 bits (4 bytes) 2 registers 1.4E-45 to 3.4E38
     Double precision (binary64)            64 bits (8 bytes) 4 registers 5E-324 to 1.8E308
@@ -1553,7 +1553,7 @@ def _floatToBytestring(value, numberOfRegisters=2):
 def _bytestringToFloat(bytestring, numberOfRegisters=2):
     """Convert a four-byte string to a float.
 
-    Floats are stored in two or more consecutive 16-bit registers in the slave.
+    Floats are stored in two or more consecutive 16-bit registers in the subordinate.
 
     For discussion on precision, number of bits, number of registers, the range, byte order
     and on alternative names, see :func:`minimalmodbus._floatToBytestring`.
@@ -1592,14 +1592,14 @@ def _bytestringToFloat(bytestring, numberOfRegisters=2):
 def _textstringToBytestring(inputstring, numberOfRegisters=16):
     """Convert a text string to a bytestring.
 
-    Each 16-bit register in the slave are interpreted as two characters (1 byte = 8 bits).
+    Each 16-bit register in the subordinate are interpreted as two characters (1 byte = 8 bits).
     For example 16 consecutive registers can hold 32 characters (32 bytes).
 
     Not much of conversion is done, mostly error checking and string padding.
     If the inputstring is shorter that the allocated space, it is padded with spaces in the end.
 
     Args:
-        * inputstring (str): The string to be stored in the slave. Max 2*numberOfRegisters characters.
+        * inputstring (str): The string to be stored in the subordinate. Max 2*numberOfRegisters characters.
         * numberOfRegisters (int): The number of registers allocated for the string.
 
     Returns:
@@ -1621,13 +1621,13 @@ def _textstringToBytestring(inputstring, numberOfRegisters=16):
 def _bytestringToTextstring(bytestring, numberOfRegisters=16):
     """Convert a bytestring to a text string.
 
-    Each 16-bit register in the slave are interpreted as two characters (1 byte = 8 bits).
+    Each 16-bit register in the subordinate are interpreted as two characters (1 byte = 8 bits).
     For example 16 consecutive registers can hold 32 characters (32 bytes).
 
     Not much of conversion is done, mostly error checking.
 
     Args:
-        * bytestring (str): The string from the slave. Length = 2*numberOfRegisters
+        * bytestring (str): The string from the subordinate. Length = 2*numberOfRegisters
         * numberOfRegisters (int): The number of registers allocated for the string.
 
     Returns:
@@ -1691,7 +1691,7 @@ def _bytestringToValuelist(bytestring, numberOfRegisters):
     The bytestring is interpreted as 'unsigned INT16'.
 
     Args:
-        * bytestring (str): The string from the slave. Length = 2*numberOfRegisters
+        * bytestring (str): The string from the subordinate. Length = 2*numberOfRegisters
         * numberOfRegisters (int): The number of registers. For error checking.
 
     Returns:
@@ -2238,11 +2238,11 @@ def _checkFunctioncode(functioncode, listOfAllowedValues=[]):
         raise ValueError('Wrong function code: {0}, allowed values are {1!r}'.format(functioncode, listOfAllowedValues))
 
 
-def _checkSlaveaddress(slaveaddress):
-    """Check that the given slaveaddress is valid.
+def _checkSubordinateaddress(subordinateaddress):
+    """Check that the given subordinateaddress is valid.
 
     Args:
-        slaveaddress (int): The slave address
+        subordinateaddress (int): The subordinate address
 
     Raises:
         TypeError, ValueError
@@ -2251,7 +2251,7 @@ def _checkSlaveaddress(slaveaddress):
     SLAVEADDRESS_MAX = 247
     SLAVEADDRESS_MIN = 0
 
-    _checkInt(slaveaddress, SLAVEADDRESS_MIN, SLAVEADDRESS_MAX, description='slaveaddress')
+    _checkInt(subordinateaddress, SLAVEADDRESS_MIN, SLAVEADDRESS_MAX, description='subordinateaddress')
 
 
 def _checkRegisteraddress(registeraddress):
